@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SJ-Developing — Portfolio</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --orange: #FF6B00; --orange-light: #FF8C38;
+    --orange-dim: rgba(255,107,0,0.15); --orange-glow: rgba(255,107,0,0.35);
+    --black: #0A0A0A; --surface: #111111; --surface2: #181818; --surface3: #222222;
+    --text: #F0F0F0; --text-muted: #888; --border: rgba(255,107,0,0.25);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--black); color: var(--text); overflow-x: hidden; }
+  #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 3rem; background: rgba(10,10,10,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  .nav-logo { font-size: 1.4rem; font-weight: 700; color: var(--orange); letter-spacing: 2px; text-transform: uppercase; }
+  .nav-logo span { color: var(--text); }
+  nav ul { list-style: none; display: flex; gap: 2.2rem; }
+  nav a { text-decoration: none; color: var(--text-muted); font-size: 0.82rem; letter-spacing: 1.5px; text-transform: uppercase; transition: color 0.2s; position: relative; }
+  nav a::after { content: ''; position: absolute; left: 0; bottom: -3px; width: 0; height: 1px; background: var(--orange); transition: width 0.25s; }
+  nav a:hover { color: var(--orange); }
+  nav a:hover::after { width: 100%; }
+  section { position: relative; z-index: 1; padding: 7rem 3rem; max-width: 1100px; margin: 0 auto; }
+  .section-label { font-size: 0.72rem; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); margin-bottom: 0.5rem; }
+  .section-title { font-size: 2.6rem; font-weight: 700; line-height: 1.15; margin-bottom: 1rem; }
+  .section-title span { color: var(--orange); }
+  .section-line { width: 48px; height: 2px; background: var(--orange); margin-bottom: 2.5rem; }
+  #hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding-top: 5rem; max-width: 1100px; margin: 0 auto; }
+  .hero-eyebrow { font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; color: var(--orange); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+  .hero-eyebrow::before { content: ''; display: block; width: 32px; height: 1px; background: var(--orange); }
+  .hero-name { font-size: clamp(3.5rem, 8vw, 7rem); font-weight: 800; line-height: 1; letter-spacing: -2px; color: var(--text); }
+  .hero-name .hi { color: var(--text-muted); font-weight: 300; }
+  .hero-role { font-size: clamp(1.1rem, 2.5vw, 1.6rem); color: var(--orange); margin-top: 0.6rem; font-weight: 300; letter-spacing: 1px; }
+  #typed-role { border-right: 2px solid var(--orange); padding-right: 2px; }
+  .hero-desc { max-width: 520px; color: var(--text-muted); font-size: 1rem; line-height: 1.75; margin-top: 1.5rem; }
+  .hero-btns { display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; }
+  .btn-primary { padding: 0.85rem 2.2rem; background: var(--orange); color: #000; font-weight: 700; font-size: 0.82rem; letter-spacing: 1.5px; text-transform: uppercase; border: none; cursor: pointer; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); transition: background 0.2s, transform 0.15s; }
+  .btn-primary:hover { background: var(--orange-light); transform: translateY(-2px); }
+  .btn-outline { padding: 0.85rem 2.2rem; background: transparent; color: var(--orange); font-size: 0.82rem; letter-spacing: 1.5px; text-transform: uppercase; border: 1px solid var(--orange); cursor: pointer; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); transition: background 0.2s, color 0.2s, transform 0.15s; }
+  .btn-outline:hover { background: var(--orange-dim); transform: translateY(-2px); }
+  .hero-scroll { margin-top: 4rem; display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; animation: bounce 2s infinite; }
+  .scroll-line { width: 1px; height: 48px; background: linear-gradient(to bottom, var(--orange), transparent); }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+  #about .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+  .about-text p { color: var(--text-muted); line-height: 1.85; margin-bottom: 1.2rem; }
+  .about-text p strong { color: var(--orange); font-weight: 600; }
+  .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .stat-card { background: var(--surface2); border: 1px solid var(--border); padding: 1.4rem 1.2rem; position: relative; overflow: hidden; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); transition: border-color 0.2s, transform 0.2s; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--orange); opacity: 0; transition: opacity 0.2s; }
+  .stat-card:hover { border-color: var(--orange); transform: translateY(-3px); }
+  .stat-card:hover::before { opacity: 1; }
+  .stat-num { font-size: 2.2rem; font-weight: 800; color: var(--orange); line-height: 1; }
+  .stat-label { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 0.4rem; }
+  #skills .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
+  .skill-card { background: var(--surface2); border: 1px solid var(--border); padding: 1.5rem 1rem 1.2rem; text-align: center; transition: border-color 0.2s, transform 0.2s; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); cursor: default; }
+  .skill-card:hover { border-color: var(--orange); transform: translateY(-4px); }
+  .skill-icon { font-size: 2rem; margin-bottom: 0.6rem; display: block; }
+  .skill-name { font-size: 0.78rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.8rem; }
+  .skill-bar { height: 3px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
+  .skill-fill { height: 100%; background: linear-gradient(90deg, var(--orange), var(--orange-light)); width: 0; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); }
+  #projects .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+  .proj-card { background: var(--surface2); border: 1px solid var(--border); overflow: hidden; transition: border-color 0.25s, transform 0.25s; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%); }
+  .proj-card:hover { border-color: var(--orange); transform: translateY(-5px); }
+  .proj-thumb { height: 160px; background: var(--surface3); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .proj-thumb-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; opacity: 0.7; transition: transform 0.3s; }
+  .proj-card:hover .proj-thumb-inner { transform: scale(1.08); }
+  .proj-tag { position: absolute; top: 12px; right: 12px; background: var(--orange); color: #000; font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 10px; }
+  .proj-body { padding: 1.4rem; }
+  .proj-title { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+  .proj-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem; }
+  .proj-stack { display: flex; flex-wrap: wrap; gap: 6px; }
+  .proj-chip { font-size: 0.68rem; letter-spacing: 1px; text-transform: uppercase; background: var(--orange-dim); color: var(--orange); padding: 3px 10px; border: 1px solid var(--orange-glow); }
+  #contact .contact-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+  .contact-social { display: flex; flex-direction: column; gap: 0.8rem; }
+  .contact-info p { color: var(--text-muted); line-height: 1.8; margin-bottom: 1.5rem; }
+  .contact-links { display: flex; flex-direction: column; gap: 0.8rem; }
+  .contact-link { display: flex; align-items: center; gap: 12px; color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; padding: 0.6rem 0; border-bottom: 1px solid rgba(255,107,0,0.1); }
+  .contact-link:hover { color: var(--orange); }
+  .contact-icon { width: 36px; height: 36px; background: var(--orange-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+
+  footer { position: relative; z-index: 1; text-align: center; padding: 2rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.78rem; letter-spacing: 1px; }
+  footer span { color: var(--orange); }
+  .fade-in { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+  .fade-in-delay-1 { transition-delay: 0.1s; }
+  .fade-in-delay-2 { transition-delay: 0.2s; }
+  @media (max-width: 700px) {
+    nav { padding: 1rem 1.2rem; } nav ul { gap: 1.2rem; }
+    section { padding: 5rem 1.2rem; }
+    #about .about-grid, #contact .contact-inner { grid-template-columns: 1fr; gap: 2rem; }
+    .hero-name { letter-spacing: -1px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <div class="nav-logo">SJ<span>-Developing</span></div>
+  <ul>
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+  </ul>
+</nav>
+
+<section id="hero">
+  <div class="hero-eyebrow">Available for work</div>
+  <h1 class="hero-name"><span class="hi">Hi, I'm </span><br>SJ-Developing</h1>
+  <div class="hero-role"><span id="typed-role"></span></div>
+  <p class="hero-desc">I craft digital experiences that sit at the intersection of beautiful design — turning complex ideas into seamless, futuristic products.</p>
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="document.querySelector('#projects').scrollIntoView({ behavior: 'smooth' })">View My Work</button>
+    <button class="btn-outline" onclick="document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' })">Let's Talk</button>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    Scroll to explore
+  </div>
+</section>
+
+<section id="about">
+  <div class="section-label fade-in">01 — About</div>
+  <h2 class="section-title fade-in fade-in-delay-1">Who I <span>Am</span></h2>
+  <div class="section-line fade-in fade-in-delay-2"></div>
+  <div class="about-grid">
+    <div class="about-text fade-in fade-in-delay-1">
+      <p>I'm James Darrell D. Saquilon, a <strong> Upcoming 3rd Year IT Student</strong> with a growing passion for <strong>UI/UX Design</strong> and <strong>Front-end Development</strong>. I love building digital experiences that are both visually clean and functional — turning ideas into real, working interfaces.</p>
+      <p>I'm still on my journey, continuously learning and improving my craft — from designing intuitive layouts in <strong>Figma</strong> to bringing them to life with <strong>HTML, CSS, and JavaScript</strong>. My programming roots actually started back in <strong>2023</strong>, where I developed games on <strong>Roblox</strong> using <strong>Lua</strong> — that early experience of building something from scratch and seeing people interact with it is what sparked my love for development.</p>
+      <p>When I'm not studying or coding, I'm exploring new design trends, experimenting with UI concepts, and sharpening my skills to become the kind of developer-designer that builds things people actually enjoy using.</p>
+    </div>
+    <div class="about-stats fade-in fade-in-delay-2">
+      <div class="stat-card"><div class="stat-num">3+</div><div class="stat-label">Years Experience(in lua and web development)</div></div>
+      <div class="stat-card"><div class="stat-num">0+</div><div class="stat-label">Ongoing Projects</div></div>
+      <div class="stat-card"><div class="stat-num">0+</div><div class="stat-label">Ongoing Collaborations</div></div>
+      <div class="stat-card"><div class="stat-num">∞</div><div class="stat-label">Ideas Brewing</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="section-label fade-in">02 — Skills</div>
+  <h2 class="section-title fade-in fade-in-delay-1">What I <span>Do</span></h2>
+  <div class="section-line fade-in fade-in-delay-2"></div>
+  <div class="skills-grid" id="skills-grid"></div>
+</section>
+
+<section id="projects">
+  <div class="section-label fade-in">03 — Work</div>
+  <h2 class="section-title fade-in fade-in-delay-1">Selected <span>Projects</span></h2>
+  <div class="section-line fade-in fade-in-delay-2"></div>
+  <div class="projects-grid" id="projects-grid"></div>
+</section>
+
+<section id="contact">
+  <div class="section-label fade-in">04 — Contact</div>
+  <h2 class="section-title fade-in fade-in-delay-1">Let's <span>Connect</span></h2>
+  <div class="section-line fade-in fade-in-delay-2"></div>
+  <div class="contact-inner">
+    <div class="contact-info fade-in fade-in-delay-1">
+      <p>Got a project in mind? Looking for a collaborator, or just want to say hello? My inbox is always open. Let's build something amazing together.</p>
+      <div class="contact-links">
+        <a class="contact-link" href="mailto:sjdeveloping2024@gmail.com"><div class="contact-icon">✉</div>sjdeveloping2024@gmail.com</a>
+        <a class="contact-link" href="https://www.linkedin.com/in/sj-developing-0987b23a6"><div class="contact-icon">in</div>https://www.linkedin.com/in/sj-developing-0987b23a6</a>
+        <a class="contact-link" href="https://github.com/sjdeveloping2024-cell"><div class="contact-icon">gh</div>https://github.com/sjdeveloping2024-cell</a>
+      </div>
+    </div>
+    <div class="contact-social fade-in fade-in-delay-2">
+      <a class="contact-link" href="https://www.facebook.com/james.darrell.d.saquilon"><div class="contact-icon">fb</div>facebook.com/james.darrell.d.saquilon</a>
+      <a class="contact-link" href="https://www.instagram.com/jemesdatyoh/"><div class="contact-icon">ig</div>instagram.com/jemesdatyoh</a>
+      <a class="contact-link" href="https://discord.gg/fKfqyQwh"><div class="contact-icon">dc</div>Server: discord.gg/fKfqyQwh</a>
+      <a class="contact-link" href="https://www.roblox.com/users/144004176/profile"><div class="contact-icon">rblx</div>https://www.roblox.com/users/144004176/profile</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Crafted by <span>SJ-Developing</span> — 2025. All rights reserved.</p>
+</footer>
+
+<script>
+
+  // ============================================================
+  // 1. GRID BACKGROUND
+  // Draws a subtle orange grid on a fixed canvas behind the page
+  // ============================================================
+
+  const gridCanvas = document.getElementById('bg-canvas');
+  const gridCtx = gridCanvas.getContext('2d');
+  let gridW, gridH;
+
+  function resizeGrid() {
+    gridW = gridCanvas.width = window.innerWidth;
+    gridH = gridCanvas.height = document.body.scrollHeight;
+  }
+
+  function drawGrid() {
+    gridCtx.clearRect(0, 0, gridW, gridH);
+
+    const cellSize = 48;
+
+    // Draw vertical lines
+    gridCtx.strokeStyle = 'rgba(255, 107, 0, 0.06)';
+    gridCtx.lineWidth = 0.5;
+    for (let x = 0; x < gridW; x += cellSize) {
+      gridCtx.beginPath();
+      gridCtx.moveTo(x, 0);
+      gridCtx.lineTo(x, gridH);
+      gridCtx.stroke();
+    }
+
+    // Draw horizontal lines
+    for (let y = 0; y < gridH; y += cellSize) {
+      gridCtx.beginPath();
+      gridCtx.moveTo(0, y);
+      gridCtx.lineTo(gridW, y);
+      gridCtx.stroke();
+    }
+
+    // Draw glowing dots at every 3rd grid intersection
+    gridCtx.fillStyle = 'rgba(255, 107, 0, 0.18)';
+    for (let x = 0; x < gridW; x += cellSize * 3) {
+      for (let y = 0; y < gridH; y += cellSize * 3) {
+        gridCtx.beginPath();
+        gridCtx.arc(x, y, 1.5, 0, Math.PI * 2);
+        gridCtx.fill();
+      }
+    }
+  }
+
+  window.addEventListener('resize', () => {
+    resizeGrid();
+    drawGrid();
+  });
+
+  resizeGrid();
+  drawGrid();
+
+
+  // ============================================================
+  // 2. FLOATING PARTICLES
+  // Orange particles that drift upward on a separate fixed canvas
+  // ============================================================
+
+  const particleCanvas = document.createElement('canvas');
+  particleCanvas.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;';
+  document.body.appendChild(particleCanvas);
+
+  const particleCtx = particleCanvas.getContext('2d');
+  let particleW, particleH;
+
+  function resizeParticles() {
+    particleW = particleCanvas.width = window.innerWidth;
+    particleH = particleCanvas.height = window.innerHeight;
+  }
+
+  // Create 36 particles with random positions and velocities
+  const particles = Array.from({ length: 36 }, () => ({
+    x:  Math.random() * window.innerWidth,
+    y:  Math.random() * window.innerHeight,
+    radius: Math.random() * 1.5 + 0.4,
+    vx: (Math.random() - 0.5) * 0.3,  // drift left or right slightly
+    vy: -(Math.random() * 0.4 + 0.1), // always drift upward
+    angle: Math.random()               // used to pulse opacity
+  }));
+
+  function animateParticles() {
+    particleCtx.clearRect(0, 0, particleW, particleH);
+
+    particles.forEach(p => {
+      // Move particle
+      p.x += p.vx;
+      p.y += p.vy;
+      p.angle += 0.005;
+
+      // Reset particle to bottom when it goes off the top
+      if (p.y < -5) {
+        p.y = particleH + 5;
+        p.x = Math.random() * particleW;
+      }
+
+      // Pulsing alpha using sine wave
+      const alpha = (Math.sin(p.angle) * 0.5 + 0.5) * 0.5;
+
+      particleCtx.beginPath();
+      particleCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      particleCtx.fillStyle = `rgba(255, 107, 0, ${alpha})`;
+      particleCtx.fill();
+    });
+
+    requestAnimationFrame(animateParticles);
+  }
+
+  window.addEventListener('resize', resizeParticles);
+  resizeParticles();
+  animateParticles();
+
+
+  // ============================================================
+  // 3. TYPEWRITER EFFECT
+  // Cycles through role titles, typing and deleting each one
+  // ============================================================
+
+  const roles = [
+    'Designer + Developer',
+    'UI/UX Designer',
+    'Creative Technologist',
+    'Digital Product Creator'
+  ];
+
+  const typedEl = document.getElementById('typed-role');
+  let roleIndex  = 0;  // which role we're currently typing
+  let charIndex  = 0;  // how many characters are currently shown
+  let isDeleting = false;
+
+  function typeWriter() {
+    const currentRole = roles[roleIndex];
+
+    if (!isDeleting) {
+      // Type one character forward
+      typedEl.textContent = currentRole.slice(0, charIndex + 1);
+      charIndex++;
+
+      if (charIndex === currentRole.length) {
+        // Finished typing — pause, then start deleting
+        isDeleting = true;
+        setTimeout(typeWriter, 1800);
+        return;
+      }
+    } else {
+      // Delete one character backward
+      typedEl.textContent = currentRole.slice(0, charIndex - 1);
+      charIndex--;
+
+      if (charIndex === 0) {
+        // Finished deleting — move to next role
+        isDeleting = false;
+        roleIndex = (roleIndex + 1) % roles.length;
+        setTimeout(typeWriter, 400);
+        return;
+      }
+    }
+
+    // Typing is slower than deleting
+    setTimeout(typeWriter, isDeleting ? 40 : 70);
+  }
+
+  typeWriter();
+
+
+  // ============================================================
+  // 4. SKILLS SECTION
+  // Dynamically builds skill cards from the data array below
+  // ============================================================
+
+  const skillsData = [
+    { icon: '🎨', name: 'UI Design',   pct: 75 },
+    { icon: '⚡', name: 'React',       pct: 20 },
+    { icon: '🖌️', name: 'Figma',      pct: 30 },
+    { icon: '🌐', name: 'HTML/CSS',    pct: 75 },
+    { icon: '🔷', name: 'TypeScript',  pct: 20 },
+    { icon: '🚀', name: 'Next.js',     pct: 20 },
+    { icon: '📱', name: 'Mobile UI',   pct: 20 },
+    { icon: '🎬', name: 'Motion',      pct: 75 },
+  ];
+
+  const skillsGrid = document.getElementById('skills-grid');
+
+  skillsData.forEach((skill, index) => {
+    const card = document.createElement('div');
+    card.className = 'skill-card fade-in';
+    card.style.transitionDelay = (index * 0.07) + 's';
+    card.innerHTML = `
+      <span class="skill-icon">${skill.icon}</span>
+      <div class="skill-name">${skill.name}</div>
+      <div class="skill-bar">
+        <div class="skill-fill" data-pct="${skill.pct}"></div>
+      </div>
+    `;
+    skillsGrid.appendChild(card);
+  });
+
+
+  // ============================================================
+  // 5. PROJECTS SECTION
+  // Dynamically builds project cards from the data array below
+  // ============================================================
+
+  const projectsData = [
+    {
+      thumb: '📱 & 🖥️',
+      tag:   'Mobile App with Admin Panel',
+      title: 'Simple Banking System (School Project)',
+      desc:  'A Simple Banking System is a mobile application designed to provide users with a seamless and secure way to manage their finances on the go. Built using React Native and Expo, this app offers a user-friendly interface for tasks such as checking account balances, transferring funds, and viewing transaction history.',
+      stack: ['Figma', 'React Native', 'Expo']
+    },
+    {
+      thumb: '📱 & 🖥️',
+      tag:   'Mobile App with Admin Panel',
+      title: 'ATTENDANCE MONITORING SYSTEM (School Project)',
+      desc:  'An Attendance Monitoring System is a web-based application designed to provide a simple and efficient way to track and manage student or employee attendance. Built using HTML, CSS, and JavaScript, this app offers a clean and easy-to-use interface for tasks such as logging attendance, viewing attendance records, and generating basic attendance reports.',
+      stack: ['Figma', 'React Native', 'Expo']
+    },
+    {
+      thumb: '🎮',
+      tag:   'Roblox Game',
+      title: 'Democratic Island (Personal Project)',
+      desc:  'A covert Roblox survival game set on a man-made island city modeled after Manila. Players are condemned criminals left to govern themselves with no laws, no guards, and no oversight — free to survive by any means necessary. Rise as a gang leader, a lone hunter, or fall like the rest. https://www.roblox.com/games/79862455620097/Democratic-Island',
+      stack: ['Roblox Studio', 'Lua Programming', 'Game Design']
+    }
+    // Add more projects here as objects following the same format
+  ];
+
+  const projectsGrid = document.getElementById('projects-grid');
+
+  projectsData.forEach((project, index) => {
+    const stackChips = project.stack
+      .map(tech => `<span class="proj-chip">${tech}</span>`)
+      .join('');
+
+    const card = document.createElement('div');
+    card.className = 'proj-card fade-in';
+    card.style.transitionDelay = (index * 0.08) + 's';
+    card.innerHTML = `
+      <div class="proj-thumb">
+        <div class="proj-thumb-inner">${project.thumb}</div>
+        <span class="proj-tag">${project.tag}</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">${project.title}</div>
+        <div class="proj-desc">${project.desc}</div>
+        <div class="proj-stack">${stackChips}</div>
+      </div>
+    `;
+    projectsGrid.appendChild(card);
+  });
+
+
+  // ============================================================
+  // 6. SCROLL ANIMATIONS
+  // Uses IntersectionObserver to fade elements in as they appear
+  // Also triggers the skill bar fill animation on scroll
+  // ============================================================
+
+  const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+
+        // If this element contains skill bars, animate them
+        entry.target.querySelectorAll('.skill-fill').forEach(bar => {
+          bar.style.width = bar.dataset.pct + '%';
+        });
+      }
+    });
+  }, { threshold: 0.12 });
+
+  // Wait a tick so dynamically created cards are in the DOM
+  setTimeout(() => {
+    document.querySelectorAll('.fade-in').forEach(el => scrollObserver.observe(el));
+  }, 100);
+
+</script>
+</body>
+</html>
